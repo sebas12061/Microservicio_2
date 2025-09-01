@@ -1,21 +1,21 @@
-# 📩 Microservicio de Notificaciones
+# Microservicio de Notificaciones
 
-## 📖 Descripción
+## Descripción
 Este microservicio se encarga de **gestionar y simular notificaciones** dentro del sistema.  
 Permite crear nuevas notificaciones y listar las ya existentes.  
 Las notificaciones cuentan con diferentes **tipos** (info, alerta, error, confirmación, etc.) y **estados** (enviada, pendiente, fallida).  
 
-> 🚀 Actualmente este microservicio utiliza una **base de datos simulada en memoria**.
+> Actualmente este microservicio utiliza una **base de datos simulada en memoria**.
 
 ---
 
-## ⚙️ Tecnologías
+## Tecnologías
 - Python 3.x
 - Flask
 
 ---
 
-## 🚀 Ejecución
+## Ejecución
 
 1. Clonar el repositorio.
 2. Crear entorno virtual e instalar dependencias:
