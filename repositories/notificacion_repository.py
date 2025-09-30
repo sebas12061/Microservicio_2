@@ -1,37 +1,56 @@
+from database import get_connection
 from models.notificacion import Notificacion
 
-# Simulación de "base de datos" en memoria con estados variados
-notificaciones = [
-    Notificacion(1, "Bienvenido a la aplicación", "info", "enviada"),
-    Notificacion(2, "Tu solicitud ha sido recibida", "alerta", "pendiente"),
-    Notificacion(3, "Nueva actualización disponible", "info", "enviada"),
-    Notificacion(4, "Tu cuenta ha sido verificada", "confirmacion", "enviada"),
-    Notificacion(5, "Error en la conexión", "error", "fallida"),
-    Notificacion(6, "Recuerda completar tu perfil", "recordatorio", "pendiente"),
-    Notificacion(7, "Tu contraseña ha sido cambiada", "seguridad", "enviada"),
-    Notificacion(8, "Saldo insuficiente en tu cuenta", "alerta", "fallida")
-]
+class NotificacionRepository:
 
-contador_id = 9  # El próximo ID disponible
+    def guardar_notificacion(self, mensaje, tipo="general"):
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = "INSERT INTO notificaciones (mensaje, tipo, estado) VALUES (%s, %s, %s)"
+        cursor.execute(query, (mensaje, tipo, "pendiente"))
+        conn.commit()
+        new_id = cursor.lastrowid
+        conn.close()
+        return Notificacion(new_id, mensaje, tipo, "pendiente")
 
-def guardar_notificacion(mensaje, tipo="general"):
-    """
-    Crea una nueva notificación con estado 'pendiente' por defecto.
-    """
-    global contador_id
-    nueva = Notificacion(contador_id, mensaje, tipo, "pendiente")
-    notificaciones.append(nueva)
-    contador_id += 1
-    return nueva
+    def listar_notificaciones(self):
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM notificaciones")
+        rows = cursor.fetchall()
+        conn.close()
+        return [Notificacion(**row).to_dict() for row in rows]
 
-def listar_notificaciones():
-    """
-    Devuelve todas las notificaciones en formato dict.
-    """
-    return [n.to_dict() for n in notificaciones]
+    def listar_por_estado(self, estado):
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM notificaciones WHERE estado = %s", (estado,))
+        rows = cursor.fetchall()
+        conn.close()
+        return [Notificacion(**row).to_dict() for row in rows]
 
-def listar_por_estado(estado):
-    """
-    Filtra notificaciones por estado (ej: enviada, pendiente, fallida).
-    """
-    return [n.to_dict() for n in notificaciones if n.estado == estado]
+    def obtener_notificacion_por_id(self, notificacion_id):
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM notificaciones WHERE id = %s", (notificacion_id,))
+        row = cursor.fetchone()
+        conn.close()
+        return Notificacion(**row) if row else None
+
+    def actualizar_estado(self, notificacion_id, nuevo_estado):
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = "UPDATE notificaciones SET estado = %s WHERE id = %s"
+        cursor.execute(query, (nuevo_estado, notificacion_id))
+        conn.commit()
+        conn.close()
+        return {"mensaje": f"Notificación {nuevo_estado}"}
+
+    def eliminar_notificacion(self, notificacion_id):
+        conn = get_connection()
+        cursor = conn.cursor()
+        query = "DELETE FROM notificaciones WHERE id = %s"
+        cursor.execute(query, (notificacion_id,))
+        conn.commit()
+        conn.close()
+        return True
